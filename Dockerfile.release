@@ -1,0 +1,18 @@
+# Build Stage
+FROM golang:1.23-alpine AS builder
+RUN apk add --no-cache clang llvm libbpf-dev git build-base linux-headers
+WORKDIR /app
+COPY . .
+# Build static binary
+RUN go generate ./internal/runtime/... || true
+RUN go build -o kidon cmd/kidon/main.go
+
+# Final Stage (Tiny Image)
+FROM alpine:latest
+RUN apk add --no-cache libbpf curl
+WORKDIR /root/
+COPY --from=builder /app/kidon .
+COPY --from=builder /app/configs ./configs
+# Add entrypoint for easy command usage
+ENTRYPOINT ["./kidon"]
+CMD ["--help"]
