@@ -1,0 +1,45 @@
+services:
+  # 1. THE VICTIM (Target Agent)
+  victim:
+    image: alpine:latest
+    container_name: victim-agent
+    command: /bin/sh -c "apk add --no-cache curl && echo 'Victim Ready' && sleep infinity"
+    networks:
+      - kidon-net
+    depends_on:
+      - kidon
+
+  # 2. THE GUARD (Iron Dome)
+  kidon:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.kidon
+    container_name: kidon-guard
+    privileged: true
+    pid: "host"
+    cap_add:
+      - SYS_ADMIN
+      - SYS_PTRACE
+      - NET_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - /sys/kernel/debug:/sys/kernel/debug:rw
+      - /sys/kernel/tracing:/sys/kernel/tracing:rw
+      - /sys/fs/bpf:/sys/fs/bpf:rw
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
+      - ../configs/kidon_policy.yaml:/app/configs/kidon_policy.yaml
+    command: >
+      /bin/sh -c "
+        echo '🛡️ Preparing Iron Dome...' &&
+        mount -t debugfs none /sys/kernel/debug 2>/dev/null || true &&
+        mount -t tracefs none /sys/kernel/tracing 2>/dev/null || true &&
+        echo '🔥 Starting Network Guard...' &&
+        /app/kidon guard --network --cgroup /sys/fs/cgroup
+      "
+    networks:
+      - kidon-net
+
+networks:
+  kidon-net:
+    driver: bridge
