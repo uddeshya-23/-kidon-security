@@ -1,49 +1,95 @@
 # Kidon Security Policy Configuration
-# Default security rules and thresholds
+# Defense-in-Depth rules for Autonomous AI Agents
 
-version: "1.0"
+version: "2.0"
 
+# =============================================================================
+# STATIC SCANNER (The Sentry)
+# =============================================================================
 scanner:
-  # Directories to skip during scanning
   skip_dirs:
     - ".git"
     - "node_modules"
     - "vendor"
     - "__pycache__"
-  
-  # Maximum file size to scan (in bytes)
   max_file_size: 10485760  # 10MB
 
-# Rule A: Credential Detection (Phase 1)
 credentials:
   enabled: true
   severity_override: null
 
-# Rule B: Permission Analysis (Phase 1 - Future)
-permissions:
-  enabled: false
-  dangerous_tools_flag: true
-  require_human_in_loop: true
-
-# Rule C: Supply Chain (Phase 1 - Future)
-supply_chain:
-  enabled: false
-  vulnerable_packages:
-    - name: "langchain"
-      version_below: "0.1.0"
-
-# Runtime Protection (Phase 2)
+# =============================================================================
+# RUNTIME PROTECTION (The Shomer)
+# =============================================================================
 runtime:
-  enabled: false
-  blocked_commands:
-    - "bash"
-    - "sh"
-    - "curl"
-    - "nc"
-    - "wget"
+  process_guard:
+    enabled: true
+    blocked_commands:
+      - "bash"
+      - "sh"
+      - "curl"
+      - "nc"
+      - "wget"
 
-# Red Team (Phase 3)
+  # Network Fortress (v0.2.0) - Titan Firewall
+  network_guard:
+    enabled: true
+    mode: "allowlist"  # allowlist | blocklist | monitor
+
+    # Whitelisted domains (resolved to IPs dynamically)
+    allowed_domains:
+      - "api.openai.com"
+      - "api.anthropic.com"
+      - "api.google.com"
+      - "localhost"
+      - "ollama"  # For local SLM
+
+    # Whitelisted IPs (direct)
+    allowed_ips:
+      - "127.0.0.1"
+      - "10.0.0.0/8"      # Private networks
+      - "172.16.0.0/12"
+      - "192.168.0.0/16"
+      - "8.8.8.8"         # Google DNS
+      - "1.1.1.1"         # Cloudflare DNS
+
+    # Explicit blocklist (takes priority)
+    blocked_ips: []
+
+# =============================================================================
+# RED TEAM ENGINE (The Kidon)
+# =============================================================================
 offensive:
-  enabled: false
+  enabled: true
   ollama_endpoint: "http://localhost:11434"
-  model: "phi3:mini"
+  model: "qwen2:7b"
+  
+  attack_categories:
+    - "ASI-01"  # Goal Hijacking
+    - "ASI-06"  # Memory Poisoning
+    - "ASI-08"  # Cascading Failures
+
+# =============================================================================
+# TITAN CLASSIFICATION
+# =============================================================================
+titan_class: 2  # 1=Cart, 2=Armored, 3=Colossal
+
+classification_rules:
+  class_1:
+    name: "Cart Titan"
+    description: "Simple chatbots, RAG systems"
+    network_guard: false
+    process_guard: false
+    
+  class_2:
+    name: "Armored Titan"
+    description: "Tool-using agents"
+    network_guard: true
+    process_guard: true
+    
+  class_3:
+    name: "Colossal Titan"
+    description: "Autonomous admin agents"
+    network_guard: true
+    process_guard: true
+    strict_mode: true

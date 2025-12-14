@@ -1,11 +1,12 @@
 # ⚔️ KIDON (כידון)
-> **Agentic Cyber Defense Platform** // Unit 8200-inspired Architecture
+> **Agentic Cyber Defense Platform** // Powered by Cilium eBPF
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Kidon: Active](https://img.shields.io/badge/Status-Operational-00f3ff)](https://github.com/uddeshya-23/-kidon-security)
+[![Status: Operational](https://img.shields.io/badge/Status-v0.1.0-00f3ff)](https://github.com/uddeshya-23/-kidon-security)
+[![Tech: Cilium eBPF](https://img.shields.io/badge/Powered%20By-Cilium%20eBPF-F6C702)](https://ebpf.io)
 [![OWASP: Top 10](https://img.shields.io/badge/OWASP%20Agentic-Covered-ff003c)](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
 
-**Kidon** (Hebrew for "Javelin") is a comprehensive security platform designed to secure Autonomous AI Agents. It operates on the **Titan Framework**, classifying agents by risk and applying layers of defense accordingly.
+**Kidon** (Hebrew for "Javelin") is the first open-source security platform designed to bind the "Titans"—Autonomous AI Agents. It moves beyond static analysis to provide **Runtime Kernel Protection** using the same eBPF technology that powers the world's largest Kubernetes clusters.
 
 ![Kidon Security Report](assets/report_screenshot.png)
 
@@ -13,11 +14,13 @@
 
 ## 🛡️ The Titan Defense Architecture
 
-| Module | Code Name | Function | Tech Stack |
-| :--- | :--- | :--- | :--- |
-| **Scanner** | *The Sentry* | Static Analysis of credentials & config | Go, Regex |
-| **Guard** | *The Shomer* | Runtime eBPF Kernel Watchdog | C, eBPF, Docker |
-| **Strike** | *The Kidon* | Offensive Red Teaming Engine | Go, Ollama |
+Kidon employs a **Defense-in-Depth** strategy mapped to the **OWASP Top 10 for Agentic AI (2025)**.
+
+| Module | Code Name | Function | Tech Stack | OWASP Coverage |
+| :--- | :--- | :--- | :--- | :--- |
+| **Scanner** | *The Sentry* | Static Analysis of Code & Config | Go, Regex, AST | ASI-03, ASI-04, ASI-07 |
+| **Guard** | *The Shomer* | Runtime Kernel Watchdog | **Cilium eBPF**, C, Docker | ASI-02, ASI-05, ASI-10 |
+| **Strike** | *The Kidon* | Offensive Red Teaming Engine | Go, Ollama (Local SLM) | ASI-01, ASI-06, ASI-08 |
 
 ---
 
@@ -41,78 +44,49 @@ go build -o kidon cmd/kidon/main.go
 ./kidon scan ./my-agent-repo
 ```
 
-**Active Defense (Runtime Guard)**
-*Requires Docker*
+**Active Defense (Runtime Guard)**  
+*Requires Docker (Linux/WSL2)*. Uses eBPF to hook `sys_enter_execve`.
 ```bash
 docker build -f deploy/Dockerfile.kidon -t kidon .
 docker run --privileged --pid=host kidon
 ```
 
-**Offensive Strike (Red Team)**
+**Offensive Strike (Red Team)**  
+Uses local Sovereign AI to generate adversarial prompts.
 ```bash
 # Attack a local agent endpoint
 ./kidon strike --target http://localhost:8000/chat --ai
 ```
 
-**Generate Mission Report**
+**Mission Intelligence**
 ```bash
 ./kidon report
-# → Opens mission_report.html in browser
+# → Opens classified mission_report.html
 ```
 
 ---
 
-## 📊 Titan Classifications
+## 🐝 Powered by Cilium eBPF
 
-| Class | Name | Risk Level | Example |
-|-------|------|------------|---------|
-| **1** | Cart Titan | Low | Chatbots, RAG |
-| **2** | Armored Titan | Medium | Tool-using Agents |
-| **3** | Colossal Titan | Critical | Autonomous Admin Agents |
+Kidon leverages the **`cilium/ebpf`** library to interface directly with the Linux Kernel.
 
----
-
-## 🎯 OWASP Coverage
-
-| Threat ID | Name | Module |
-|-----------|------|--------|
-| ASI-01 | Goal Hijacking | Strike |
-| ASI-02 | Tool Misuse | Guard |
-| ASI-03 | Privilege Abuse | Scan |
-| ASI-05 | Unexpected Code Exec | Guard |
-| ASI-07 | Insecure Communications | Scan |
+* **Why?** Agents are dynamic. They generate code on the fly. Traditional firewalls cannot see what an agent "thinks."
+* **How?** We attach non-intrusive probes to the kernel's syscall interface.
+  * **Tracepoints:** To detect process execution (`execve`).
+  * **Socket Filter (Coming v0.2):** To prevent unauthorized data exfiltration.
 
 ---
 
-## 📁 Project Structure
+## 🔧 Development & Roadmap
 
-```
-kidon-security/
-├── cmd/kidon/main.go         # CLI entry point
-├── internal/
-│   ├── static/               # Credential scanner
-│   ├── runtime/              # eBPF loader
-│   ├── offensive/            # Red team engine
-│   └── report/               # HTML generator
-├── bpf/                      # eBPF C kernels
-├── deploy/                   # Docker files
-└── configs/                  # Policy configuration
-```
+**Current Version:** v0.1.0 (MVP)  
+**Next Milestone:** v0.2.0 (Network Fortress)
 
----
-
-## 🔧 Development
-
-```bash
-# Run tests
-go test ./...
-
-# Generate eBPF artifacts (Linux only)
-go generate ./internal/runtime/...
-
-# Build Docker image
-docker build -f deploy/Dockerfile.kidon -t kidon-security .
-```
+- [x] **Phase 1:** Static Credential Scanner
+- [x] **Phase 2:** Runtime Process Guard (eBPF)
+- [x] **Phase 3:** Red Teaming Engine (Ollama)
+- [ ] **Phase 4:** Network Egress Filtering (Cilium/eBPF) `<- NEXT`
+- [ ] **Phase 5:** Kubernetes Operator
 
 ---
 
