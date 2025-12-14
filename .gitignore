@@ -18,6 +18,3 @@ Thumbs.db
 # Go
 vendor/
 *.test
-
-# QA test files
-qa_lab/

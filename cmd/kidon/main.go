@@ -48,7 +48,7 @@ var scanCmd = &cobra.Command{
 Scans for:
   - Hardcoded credentials (API keys, AWS keys)
   - Dangerous tool configurations
-  - Vulnerable dependencies`,
+  - Vulnerable dependencies (OSV.dev)`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		targetPath := "."
@@ -65,12 +65,31 @@ Scans for:
 		bold.Println("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 		fmt.Printf("Target: %s\n\n", targetPath)
 
+		// Phase 1: Credential Scan
+		fmt.Println("🔐 Scanning for credentials...")
 		scanner := static.NewScanner()
 		findings, err := scanner.ScanDirectory(targetPath)
 		if err != nil {
 			red.Printf("✗ Error scanning: %v\n", err)
 			os.Exit(1)
 		}
+
+		// Phase 5: Supply Chain Scan
+		fmt.Println("📦 Analyzing supply chain dependencies...")
+		pkgs, _ := static.ParseDependencies(targetPath)
+		if len(pkgs) > 0 {
+			fmt.Printf("   Found %d packages to check\n", len(pkgs))
+			vulns := static.CheckVulnerabilities(pkgs)
+			findings = append(findings, vulns...)
+			if len(vulns) > 0 {
+				red.Printf("   ⚠ Found %d vulnerable dependencies!\n", len(vulns))
+			} else {
+				green.Println("   ✓ No known vulnerabilities found")
+			}
+		} else {
+			fmt.Println("   No dependency files found")
+		}
+		fmt.Println()
 
 		if len(findings) == 0 {
 			green.Println("✓ No security issues found. Area is clear.")
@@ -79,7 +98,9 @@ Scans for:
 			for i, finding := range findings {
 				yellow.Printf("[%d] %s\n", i+1, finding.RuleName)
 				fmt.Printf("    File: %s:%d\n", finding.FilePath, finding.LineNumber)
-				fmt.Printf("    Match: %s\n", finding.MatchedText)
+				if finding.MatchedText != "" {
+					fmt.Printf("    Match: %s\n", finding.MatchedText)
+				}
 				fmt.Printf("    Severity: %s\n\n", finding.Severity)
 			}
 		}
