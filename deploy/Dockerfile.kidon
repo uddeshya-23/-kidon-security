@@ -1,0 +1,28 @@
+# Stage 1: Builder (Needs Clang/LLVM for eBPF)
+FROM golang:1.24-bookworm AS builder
+
+# Install eBPF dependencies including bpftool for vmlinux.h generation
+RUN apt-get update && apt-get install -y \
+    clang \
+    llvm \
+    libbpf-dev \
+    linux-headers-generic \
+    gcc-multilib \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY . .
+
+# Generate the BPF Bytecode
+RUN go generate ./internal/runtime/...
+
+# Build the binary
+RUN go build -o kidon cmd/kidon/main.go
+
+# Stage 2: Runner
+FROM ubuntu:22.04
+WORKDIR /app
+COPY --from=builder /app/kidon .
+
+# Required for eBPF to work
+CMD ["./kidon", "guard"]

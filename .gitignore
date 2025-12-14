@@ -1,0 +1,23 @@
+# Binaries
+*.exe
+kidon
+
+# Test artifacts
+mission.json
+mission_report.html
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+*.test
+
+# QA test files
+qa_lab/
