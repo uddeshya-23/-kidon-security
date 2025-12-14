@@ -2,10 +2,12 @@
 > **Agentic Cyber Defense Platform** // Unit 8200-inspired Architecture
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Kidon: Active](https://img.shields.io/badge/Status-Operational-00f3ff)](https://github.com/uddeshya-23/kidon-security)
+[![Kidon: Active](https://img.shields.io/badge/Status-Operational-00f3ff)](https://github.com/uddeshya-23/-kidon-security)
 [![OWASP: Top 10](https://img.shields.io/badge/OWASP%20Agentic-Covered-ff003c)](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
 
 **Kidon** (Hebrew for "Javelin") is a comprehensive security platform designed to secure Autonomous AI Agents. It operates on the **Titan Framework**, classifying agents by risk and applying layers of defense accordingly.
+
+![Kidon Security Report](assets/report_screenshot.png)
 
 ---
 
@@ -25,7 +27,7 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/uddeshya-23/kidon-security
+git clone https://github.com/uddeshya-23/-kidon-security
 cd kidon-security
 
 # Build the binary
