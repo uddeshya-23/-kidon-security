@@ -5,17 +5,20 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"time"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/uddeshya-23/kidon-security/internal/offensive"
 	"github.com/uddeshya-23/kidon-security/internal/report"
 	kruntime "github.com/uddeshya-23/kidon-security/internal/runtime"
 	"github.com/uddeshya-23/kidon-security/internal/static"
+	"github.com/uddeshya-23/kidon-security/internal/ui"
 )
 
 var (
-	version = "0.1.0"
+	version = "0.2.1"
 	banner  = `
 ██╗  ██╗██╗██████╗  ██████╗ ███╗   ██╗
 ██║ ██╔╝██║██╔══██╗██╔═══██╗████╗  ██║
@@ -281,6 +284,49 @@ generates mission_report.html with a cyber-military dark theme.`,
 	},
 }
 
+// Dashboard command - TUI Cockpit
+var dashboardCmd = &cobra.Command{
+	Use:   "dashboard",
+	Short: "Launch the Kidon Command Cockpit (TUI)",
+	Long: `The Cockpit - Unified Terminal Dashboard.
+
+Provides a real-time terminal interface combining:
+  - THE SENTRY: Static Analysis & Supply Chain Scanner
+  - THE SHOMER: Runtime Guard with eBPF event streaming
+  - THE KIDON: Red Team Attack Console
+
+Controls:
+  [Tab] Switch tabs | [1-3] Direct select | [s] Scan | [q] Quit`,
+	Run: func(cmd *cobra.Command, args []string) {
+		// Create a channel for guard events
+		guardChan := make(chan string)
+
+		// Simulate guard events (replace with real runtime.MonitorEvents)
+		go func() {
+			events := []string{
+				"[PROCESS] bash blocked (PID 1234)",
+				"[NET] ✅ api.openai.com allowed",
+				"[NET] 🚨 evil-server.com BLOCKED",
+				"[PROCESS] python allowed (PID 5678)",
+				"[NET] ✅ google.com allowed",
+			}
+			i := 0
+			for {
+				time.Sleep(2 * time.Second)
+				guardChan <- fmt.Sprintf("%s (%s)", events[i%len(events)], time.Now().Format("15:04:05"))
+				i++
+			}
+		}()
+
+		// Launch TUI
+		p := tea.NewProgram(ui.InitialModel(guardChan))
+		if _, err := p.Run(); err != nil {
+			fmt.Printf("Error: %v", err)
+			os.Exit(1)
+		}
+	},
+}
+
 func init() {
 	// Strike command flags
 	strikeCmd.Flags().StringVarP(&strikeTarget, "target", "t", "http://localhost:8000/chat", "Target API URL")
@@ -293,6 +339,7 @@ func init() {
 	rootCmd.AddCommand(guardCmd)
 	rootCmd.AddCommand(strikeCmd)
 	rootCmd.AddCommand(reportCmd)
+	rootCmd.AddCommand(dashboardCmd)
 }
 
 func main() {
