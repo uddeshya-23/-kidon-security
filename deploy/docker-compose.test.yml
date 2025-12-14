@@ -1,22 +1,5 @@
 services:
-  # The Victim: Ubuntu with bash - tries to spawn shell after delay
-  victim:
-    image: ubuntu:22.04
-    container_name: victim-agent
-    depends_on:
-      - kidon
-    command: >
-      /bin/sh -c "
-        echo '🎯 Victim agent starting...' &&
-        sleep 10 &&
-        echo '💀 Attempting to spawn bash shell...' &&
-        /bin/bash -c 'echo I AM HACKED - bash executed successfully' &&
-        sleep 5
-      "
-    networks:
-      - kidon-net
-
-  # The Police: Kidon Guard with eBPF
+  # KIDON GUARD (Process Monitor)
   kidon:
     build:
       context: ..
@@ -27,24 +10,37 @@ services:
     cap_add:
       - SYS_ADMIN
       - SYS_PTRACE
-      - NET_ADMIN
-    security_opt:
-      - apparmor:unconfined
     volumes:
       - /sys/kernel/debug:/sys/kernel/debug:rw
       - /sys/kernel/tracing:/sys/kernel/tracing:rw
-      - /sys/fs/bpf:/sys/fs/bpf:rw
     command: >
       /bin/sh -c "
         echo '🛡️ Preparing Kidon Guard...' &&
         mount -t debugfs none /sys/kernel/debug 2>/dev/null || true &&
         mount -t tracefs none /sys/kernel/tracing 2>/dev/null || true &&
-        echo '🔒 Starting eBPF protection...' &&
+        echo '🔥 Starting Process Guard v0.1.0...' &&
         /app/kidon guard
       "
     networks:
-      - kidon-net
+      - test-net
+
+  # TEST: Process Execution Detection
+  test-bash:
+    image: ubuntu:22.04
+    container_name: test-bash
+    depends_on:
+      - kidon
+    command: >
+      /bin/sh -c "
+        echo '🎯 Starting test...' &&
+        sleep 10 &&
+        echo '💀 Attempting bash...' &&
+        /bin/bash -c 'echo BASH EXECUTED' &&
+        echo '✅ Test Complete'
+      "
+    networks:
+      - test-net
 
 networks:
-  kidon-net:
+  test-net:
     driver: bridge
