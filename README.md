@@ -12,7 +12,7 @@
 
 ---
 
-## 🚀 Quick Start (Run like Trivy)
+## 🚀 Quick Start 
 
 ### Option 1: Docker (Recommended)
 No installation required. Runs the full platform in a container.
