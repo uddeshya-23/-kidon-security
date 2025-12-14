@@ -13,7 +13,53 @@ import (
 	"github.com/cilium/ebpf/ringbuf"
 )
 
+// GuardMode specifies which protection to enable
+type GuardMode int
+
+const (
+	GuardModeProcess GuardMode = 1 << iota // Process execution monitoring
+	GuardModeNetwork                        // Network egress filtering
+	GuardModeAll     = GuardModeProcess | GuardModeNetwork
+)
+
+// StartGuard launches the process execution monitor (legacy v0.1.0)
 func StartGuard() {
+	StartGuardWithMode(GuardModeProcess)
+}
+
+// StartNetworkGuard launches only the network guard (v0.2.0)
+func StartNetworkGuard(cgroupPath string) {
+	ng := NewNetworkGuard()
+	ng.LoadDefaultPolicy()
+	
+	if err := ng.Start(cgroupPath); err != nil {
+		log.Fatalf("Failed to start network guard: %v", err)
+	}
+	defer ng.Close()
+	
+	ng.MonitorEvents()
+}
+
+// StartFullGuard launches both process and network guards (v0.2.0)
+func StartFullGuard(cgroupPath string) {
+	// Start network guard in background
+	ng := NewNetworkGuard()
+	ng.LoadDefaultPolicy()
+	
+	if err := ng.Start(cgroupPath); err != nil {
+		log.Printf("⚠️  Network guard failed to start: %v", err)
+		log.Println("Continuing with process guard only...")
+	} else {
+		defer ng.Close()
+		go ng.MonitorEvents()
+	}
+	
+	// Start process guard
+	StartGuardWithMode(GuardModeProcess)
+}
+
+// StartGuardWithMode launches guard with specified mode
+func StartGuardWithMode(mode GuardMode) {
 	// 1. Allow the application to lock memory for eBPF resources
 	if err := rlimit.RemoveMemlock(); err != nil {
 		log.Fatal(err)
@@ -56,7 +102,6 @@ func StartGuard() {
 			}
 
 			// Parse the binary data back into a struct
-			// Note: For MVP, just log the raw event
 			_ = record
 			log.Printf("🚨 ALERT: BLOCKED SUSPICIOUS PROCESS EXECUTION!")
 		}

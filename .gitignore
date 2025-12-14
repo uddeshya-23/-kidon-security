@@ -1,6 +1,6 @@
 # Binaries
 *.exe
-kidon
+/kidon
 
 # Test artifacts
 mission.json
