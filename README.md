@@ -10,6 +10,7 @@
 
 ![Kidon Command Cockpit - The Sentry](assets/dashboard_sentry.png)
 
+
 ---
 
 ## 🚀 Quick Start 
@@ -91,6 +92,7 @@ Automatically detects vulnerable dependencies using OSV.dev:
 | **Strike** | *The Kidon* | AI-Powered Red Teaming | ASI-01, ASI-06, ASI-08 |
 
 ---
+<img width="1671" height="758" alt="image" src="https://github.com/user-attachments/assets/0fc35fa3-e0ff-42bd-af13-cbf4ad4258bd" />
 
 ## 📝 License
 
